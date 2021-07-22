@@ -2,6 +2,9 @@ import React from 'react';
 
 import './PathfindingVisualizer.css';
 
+const ROWS = 30;
+const COLUMNS = 50;
+
 function Cell(props) {
     return (
         <button className="cell" onClick={props.onClick}>
@@ -43,10 +46,9 @@ export default class PathfindingVisualizer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            grid: generateGrid(30, 30),
-            rows: 30,
-            columns: 30,
-
+            grid: generateGrid(ROWS, COLUMNS),
+            rows: ROWS,
+            columns: COLUMNS
         };
     }
 
