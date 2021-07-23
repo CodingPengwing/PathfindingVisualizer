@@ -1,15 +1,21 @@
 import React from 'react';
+import styles from "./PathfindingVisualizer.module.scss";
+import { useState } from 'react';
+import { Button } from '@material-ui/core';
 
-import './PathfindingVisualizer.css';
+const ROWS = 20;
+const COLUMNS = 38;
 
-const ROWS = 30;
-const COLUMNS = 50;
+const Cell = (props) => {
+    const [active, setActive] = useState(false);
 
-function Cell(props) {
+    const handleClick = () => {
+        props.onClick();
+        setActive(!active);
+    }
+
     return (
-        <button className="cell" onClick={props.onClick}>
-            {props.value}
-        </button>
+        <button className={`${active? styles.cellActive : styles.cell}`} onClick={handleClick}/>
     );
 }
   
@@ -32,7 +38,7 @@ class Board extends React.Component {
             for (let j = 0; j < this.props.columns; j++) {
                 row.push(this.renderCell(i, j, key++));
             }
-            rows.push(<div className="row" key={i}>{row}</div>);
+            rows.push(<div className={styles.row} key={i}>{row}</div>);
         }
         return (
             <div className="board">
@@ -64,7 +70,7 @@ export default class PathfindingVisualizer extends React.Component {
     render() {
         return (
             <div>
-                <Board grid={this.state.grid} rows={this.state.rows} columns={this.state.columns} onClick={(i, j)=>this.handleClick(i, j)}> </Board>
+                <Board grid={this.state.grid} rows={this.state.rows} columns={this.state.columns} onClick={(i, j)=>this.handleClick(i, j)}/>
             </div>
         );
     }
