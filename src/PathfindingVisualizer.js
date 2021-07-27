@@ -77,26 +77,27 @@ export default class PathfindingVisualizer extends React.Component {
         this.state = {
             grid: generateGrid(ROWS, COLUMNS),
             rows: ROWS,
-            columns: COLUMNS
+            columns: COLUMNS,
+
+            animating: false,
         };
+
+        this.search = BFS;
 
         this.history = [];
         this.clearHistory = () => {
             this.history = [];
         }
-
         this.clearForwardHistory = () => {
         }
+
+        this.timeoutIDArray = [];
 
         this.resumePoint = 0;
 
         this.takeSnapshot = (grid) => {
-            const newGrid = [];
             try {
-                for (let i = 0; i < grid.length; i++) {
-                    newGrid.push(grid[i].slice());
-                }
-                this.history.push(newGrid);
+                this.history.push(copyGrid(grid));
             } catch (e) {
                 console.error("Error: takeSnapshot arguments are not well defined.\n", e);
             }
@@ -109,10 +110,9 @@ export default class PathfindingVisualizer extends React.Component {
     goToState(i) {
         if (i < this.history.length) {
             var displayState = this.history[i];
-            var array = displayState.array.slice();
             this.resumePoint = i;
             this.setState({
-                array: array, 
+                grid: displayState, 
                 // highlights: {comparing: comparing}, 
             });
         }
@@ -120,6 +120,7 @@ export default class PathfindingVisualizer extends React.Component {
 
     doSearch() {
         this.search({grid: this.state.grid, takeSnapshot: this.takeSnapshot});
+        this.animateHistory(0);
     }
 
     animateHistory(startPoint) {
@@ -149,10 +150,10 @@ export default class PathfindingVisualizer extends React.Component {
     }
 
     render() {
-        console.log([[0,1], [1,1]].includes([0,1]))
         return (
             <div>
                 <Board grid={this.state.grid} rows={this.state.rows} columns={this.state.columns} onClick={(i, j)=>this.handleClick(i, j)}/>
+                <button onClick={()=>{this.doSearch()}}>Test</button>
             </div>
         );
     }

@@ -7,6 +7,13 @@ export function search(props) {
     takeSnapshot = props.takeSnapshot;
     let origin;
     let goal;
+
+    // Hard code for testing purposes
+    grid[2][2].value = ORIGIN;
+    grid[5][5].value = GOAL;
+    takeSnapshot(grid);
+
+    // --------------------------------
     for (let i = 0; i < props.length; i++) {
         for (let j = 0; j < props; j++) {
             if (grid[i][j] === ORIGIN) {
@@ -23,5 +30,5 @@ export function search(props) {
 }
 
 function BFS(grid, origin, goal) {
-    
+
 }
