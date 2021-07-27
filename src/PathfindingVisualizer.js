@@ -5,17 +5,19 @@ import { Button } from '@material-ui/core';
 import { search as BFS } from "./SearchingAlgorithms/BFS";
 import { gridNeighbors } from "./util";
 
-const ROWS = 20;
+const ROWS = 15;
 const COLUMNS = 38;
 
-export const ORIGIN = 0;
-export const GOAL = 1;
-export const SEARCHED = 2;
+export const GOAL = 0;
+export const ORIGIN = 1;
+export const PATH = 2;
+export const EXPLORED = 3;
+export const FRONTIER = 4;
 
-const ANIMATION_TIME = 500;
+const ANIMATION_TIME = 10;
 
 
-const Cell = (props) => {
+const Node = (props) => {
     const [active, setActive] = useState(false);
 
     const handleClick = () => {
@@ -25,15 +27,17 @@ const Cell = (props) => {
 
     var color;
     switch (props.value) {
-        case ORIGIN: color = "red"; break;
         case GOAL: color = "green"; break;
-        case SEARCHED: color = "blue"; break;
+        case ORIGIN: color = "red"; break;
+        case PATH: color = "yellow"; break;
+        case EXPLORED: color = "purple"; break;
+        case FRONTIER: color = "#666"; break;
         default: color = "white"; break;
     }
 
     return (
         <button 
-            className={`${active? styles.cellActive : styles.cell}`} 
+            className={`${active? styles.nodeActive : styles.node}`} 
             // onClick={handleClick}
             style={{
                 background: color
@@ -43,10 +47,10 @@ const Cell = (props) => {
 }
   
 class Board extends React.Component {
-    renderCell(i, j, key) {
+    renderNode(i, j, key) {
         return (
-            <Cell 
-                value={this.props.grid[i][j].value} 
+            <Node 
+                value={this.props.nodes[[i,j]].value} 
                 // onClick={() => this.props.onClick(i, j)}
                 key={key}
             />
@@ -59,7 +63,7 @@ class Board extends React.Component {
         for (let i = 0; i < this.props.rows; i++) {
             var row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                row.push(this.renderCell(i, j, key++));
+                row.push(this.renderNode(i, j, key++));
             }
             rows.push(<div className={styles.row} key={i}>{row}</div>);
         }
@@ -75,7 +79,7 @@ export default class PathfindingVisualizer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            grid: generateGrid(ROWS, COLUMNS),
+            nodes: generateGrid(ROWS, COLUMNS),
             rows: ROWS,
             columns: COLUMNS,
 
@@ -88,16 +92,13 @@ export default class PathfindingVisualizer extends React.Component {
         this.clearHistory = () => {
             this.history = [];
         }
-        this.clearForwardHistory = () => {
-        }
 
         this.timeoutIDArray = [];
-
         this.resumePoint = 0;
 
-        this.takeSnapshot = (grid) => {
+        this.takeSnapshot = (dict) => {
             try {
-                this.history.push(copyGrid(grid));
+                this.history.push(copyDict(dict));
             } catch (e) {
                 console.error("Error: takeSnapshot arguments are not well defined.\n", e);
             }
@@ -112,14 +113,14 @@ export default class PathfindingVisualizer extends React.Component {
             var displayState = this.history[i];
             this.resumePoint = i;
             this.setState({
-                grid: displayState, 
+                nodes: displayState, 
                 // highlights: {comparing: comparing}, 
             });
         }
     }
 
     doSearch() {
-        this.search({grid: this.state.grid, takeSnapshot: this.takeSnapshot});
+        this.search({nodes: copyDict(this.state.nodes), takeSnapshot: this.takeSnapshot});
         this.animateHistory(0);
     }
 
@@ -143,50 +144,44 @@ export default class PathfindingVisualizer extends React.Component {
         }
     }
 
-    handleClick(i, j) {
-        var grid = this.state.grid.slice();
-        grid[i][j] = 1;
-        this.setState({grid: grid});
-    }
+    // handleClick(i, j) {
+    //     var grid = this.state.grid.slice();
+    //     grid[i][j] = 1;
+    //     this.setState({grid: grid});
+    // }
 
     render() {
         return (
             <div>
-                <Board grid={this.state.grid} rows={this.state.rows} columns={this.state.columns} onClick={(i, j)=>this.handleClick(i, j)}/>
-                <button onClick={()=>{this.doSearch()}}>Test</button>
+                <Board nodes={this.state.nodes} rows={this.state.rows} columns={this.state.columns} />
+                <button className={styles.test} onClick={()=>{this.doSearch()}}>Test</button>
             </div>
         );
     }
 }
 
 function generateGrid(rows, cols) {
-    var grid = [];
+    var grid = {};
     for (let i = 0; i < rows; i++) {
-        let row = [];
         for (let j = 0; j < cols; j++) {
-            row.push({
+            grid[[i,j]] = {
                 value: -1,
                 neighbors: gridNeighbors(i, j, rows, cols)
-            });
+            };
         }
-        grid.push(row);
     }
     return grid;
 }
 
-function copyGrid(grid) {
-    var newGrid = [];
-    for (let i = 0; i < grid.length; i++) {
-        var row = [];
-        for (let j = 0; j < grid[i].length; j++) {
-            row[j] = {
-                value: grid[i][j].value,
-                // We are purposefully using the same reference to neighbors 
-                // because different states should have the same orientations.
-                neighbors: grid[i][j].neighbors
-            };
+function copyDict(dict) {
+    var newDict = {};
+    for (var node in dict) {
+        newDict[node] = {
+            value: dict[node].value,
+            // We don't use neighbors.slice() but actually use original neighbors on purpose
+            // because the neighbors of the nodes should stay consistent throughout searching
+            neighbors: dict[node].neighbors
         }
-        newGrid[i] = row;
     }
-    return newGrid;
+    return newDict;
 }
