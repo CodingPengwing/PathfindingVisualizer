@@ -2,9 +2,18 @@ import React from 'react';
 import styles from "./PathfindingVisualizer.module.scss";
 import { useState } from 'react';
 import { Button } from '@material-ui/core';
+import { search as BFS } from "./SearchingAlgorithms/BFS";
+import { gridNeighbors } from "./util";
 
 const ROWS = 20;
 const COLUMNS = 38;
+
+export const ORIGIN = 0;
+export const GOAL = 1;
+export const SEARCHED = 2;
+
+const ANIMATION_TIME = 500;
+
 
 const Cell = (props) => {
     const [active, setActive] = useState(false);
@@ -14,8 +23,22 @@ const Cell = (props) => {
         setActive(!active);
     }
 
+    var color;
+    switch (props.value) {
+        case ORIGIN: color = "red"; break;
+        case GOAL: color = "green"; break;
+        case SEARCHED: color = "blue"; break;
+        default: color = "white"; break;
+    }
+
     return (
-        <button className={`${active? styles.cellActive : styles.cell}`} onClick={handleClick}/>
+        <button 
+            className={`${active? styles.cellActive : styles.cell}`} 
+            // onClick={handleClick}
+            style={{
+                background: color
+            }}
+        />
     );
 }
   
@@ -23,8 +46,8 @@ class Board extends React.Component {
     renderCell(i, j, key) {
         return (
             <Cell 
-                value={this.props.grid[i][j]} 
-                onClick={() => this.props.onClick(i, j)}
+                value={this.props.grid[i][j].value} 
+                // onClick={() => this.props.onClick(i, j)}
                 key={key}
             />
         );
@@ -56,9 +79,67 @@ export default class PathfindingVisualizer extends React.Component {
             rows: ROWS,
             columns: COLUMNS
         };
+
+        this.history = [];
+        this.clearHistory = () => {
+            this.history = [];
+        }
+
+        this.clearForwardHistory = () => {
+        }
+
+        this.resumePoint = 0;
+
+        this.takeSnapshot = (grid) => {
+            const newGrid = [];
+            try {
+                for (let i = 0; i < grid.length; i++) {
+                    newGrid.push(grid[i].slice());
+                }
+                this.history.push(newGrid);
+            } catch (e) {
+                console.error("Error: takeSnapshot arguments are not well defined.\n", e);
+            }
+        }
     }
 
     componentDidMount() {
+    }
+
+    goToState(i) {
+        if (i < this.history.length) {
+            var displayState = this.history[i];
+            var array = displayState.array.slice();
+            this.resumePoint = i;
+            this.setState({
+                array: array, 
+                // highlights: {comparing: comparing}, 
+            });
+        }
+    }
+
+    doSearch() {
+        this.search({grid: this.state.grid, takeSnapshot: this.takeSnapshot});
+    }
+
+    animateHistory(startPoint) {
+        if (!startPoint) { startPoint = 0; }
+        if (this.startPoint >= this.history.length - 1) {
+            return;
+        }
+        this.setState({animating: true});
+        var pauseTime;
+        var count = 1;
+        for (let i = startPoint; i < this.history.length; i++) {
+            pauseTime = ANIMATION_TIME * count;
+            let timeoutID = setTimeout(() => {
+                this.goToState(i);
+                if (i === this.history.length - 1) { this.setState({animating: false}); }
+            }, pauseTime);
+
+            this.timeoutIDArray.push(timeoutID);
+            count++;
+        }
     }
 
     handleClick(i, j) {
@@ -68,6 +149,7 @@ export default class PathfindingVisualizer extends React.Component {
     }
 
     render() {
+        console.log([[0,1], [1,1]].includes([0,1]))
         return (
             <div>
                 <Board grid={this.state.grid} rows={this.state.rows} columns={this.state.columns} onClick={(i, j)=>this.handleClick(i, j)}/>
@@ -76,12 +158,15 @@ export default class PathfindingVisualizer extends React.Component {
     }
 }
 
-function generateGrid(rows, columns) {
+function generateGrid(rows, cols) {
     var grid = [];
     for (let i = 0; i < rows; i++) {
         let row = [];
-        for (let j = 0; j < columns; j++) {
-            row.push(0);
+        for (let j = 0; j < cols; j++) {
+            row.push({
+                value: -1,
+                neighbors: gridNeighbors(i, j, rows, cols)
+            });
         }
         grid.push(row);
     }
@@ -93,7 +178,12 @@ function copyGrid(grid) {
     for (let i = 0; i < grid.length; i++) {
         var row = [];
         for (let j = 0; j < grid[i].length; j++) {
-            row[j] = grid[i][j];
+            row[j] = {
+                value: grid[i][j].value,
+                // We are purposefully using the same reference to neighbors 
+                // because different states should have the same orientations.
+                neighbors: grid[i][j].neighbors
+            };
         }
         newGrid[i] = row;
     }
