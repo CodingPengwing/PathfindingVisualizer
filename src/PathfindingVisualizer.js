@@ -128,7 +128,8 @@ export default class PathfindingVisualizer extends React.Component {
     doSearch() {
         this.clearTimeouts();
         this.clearHistory();
-        this.search({nodes: copyDict(this.state.nodes), takeSnapshot: this.takeSnapshot});
+        var nodes = generateGrid(ROWS, COLUMNS);
+        this.search({nodes: nodes, takeSnapshot: this.takeSnapshot});
         this.animateHistory(0);
     }
 
@@ -162,7 +163,7 @@ export default class PathfindingVisualizer extends React.Component {
         return (
             <div>
                 <Board nodes={this.state.nodes} rows={this.state.rows} columns={this.state.columns} />
-                <button className={styles.test} onClick={()=>{this.doSearch()}}>Test</button>
+                <button className={styles.test} onClick={()=>{ this.doSearch()}}>Test</button>
             </div>
         );
     }
