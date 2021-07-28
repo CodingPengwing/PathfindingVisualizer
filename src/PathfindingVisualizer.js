@@ -94,6 +94,12 @@ export default class PathfindingVisualizer extends React.Component {
         }
 
         this.timeoutIDArray = [];
+        this.clearTimeouts = () => {
+            for (let i = 0; i < this.timeoutIDArray.length; i++) {
+                clearTimeout(this.timeoutIDArray[i]);
+            }
+            this.timeoutIDArray = [];
+        }
         this.resumePoint = 0;
 
         this.takeSnapshot = (dict) => {
@@ -120,6 +126,8 @@ export default class PathfindingVisualizer extends React.Component {
     }
 
     doSearch() {
+        this.clearTimeouts();
+        this.clearHistory();
         this.search({nodes: copyDict(this.state.nodes), takeSnapshot: this.takeSnapshot});
         this.animateHistory(0);
     }
