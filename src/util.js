@@ -1,3 +1,8 @@
+// Generates a random integer within the given interval, exclusive of max.r
+export function randomIntFromInterval(min, max) {
+    return Math.floor(Math.random() * (max-min+1) + min);
+}
+
 export function gridNeighbors(i, j, rows, cols) {
     // const possibleNeighbors = [[i-1, j-1], [i-1, j], [i-1, j+1], [i, j-1], [i, j+1], [i+1, j-1], [i+1, j], [i+1, j+1]];
     const possibleNeighbors = [[i-1, j], [i, j-1], [i, j+1], [i+1, j]];

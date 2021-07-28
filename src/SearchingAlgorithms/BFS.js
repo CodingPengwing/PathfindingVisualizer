@@ -1,5 +1,5 @@
-import { ORIGIN, GOAL, FRONTIER, EXPLORED, PATH } from "../PathfindingVisualizer";
-import { sameCoordinates, changeValue } from "../util";
+import { ORIGIN, GOAL, FRONTIER, EXPLORED, PATH, ROWS, COLUMNS } from "../PathfindingVisualizer";
+import { sameCoordinates, changeValue, randomIntFromInterval } from "../util";
 var takeSnapshot;
 
 export function search(props) {
@@ -8,9 +8,13 @@ export function search(props) {
     let origin_c;
     let goal_c;
 
+    let x1 = randomIntFromInterval(0, ROWS-1);
+    let y1 = randomIntFromInterval(0, COLUMNS-1);
+    let x2 = randomIntFromInterval(0, ROWS-1);
+    let y2 = randomIntFromInterval(0, COLUMNS-1);
     // Hard code for testing purposes
-    nodes[[5,5]].value = ORIGIN;
-    nodes[[14,25]].value = GOAL;
+    nodes[[x1,y1]].value = ORIGIN;
+    nodes[[x2,y2]].value = GOAL;
     // ------------------------------
 
     for (var node in nodes) {
@@ -63,7 +67,9 @@ function BFS(nodes, origin_c, goal_c) {
                         path.push(traverseFrom[curr]);
                         curr = traverseFrom[curr];
                         if (curr) {
-                            changeValue(nodes, curr, PATH);
+                            if (curr !== "" + origin_c) {
+                                changeValue(nodes, curr, PATH);
+                            }
                             takeSnapshot(nodes);
                         }
                     }

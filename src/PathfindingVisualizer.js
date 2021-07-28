@@ -5,8 +5,8 @@ import { Button } from '@material-ui/core';
 import { search as BFS } from "./SearchingAlgorithms/BFS";
 import { gridNeighbors } from "./util";
 
-const ROWS = 15;
-const COLUMNS = 38;
+export const ROWS = 15;
+export const COLUMNS = 38;
 
 export const GOAL = 0;
 export const ORIGIN = 1;
